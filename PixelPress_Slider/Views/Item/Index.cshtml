@@ -1,0 +1,176 @@
+﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<IEnumerable<PixelPress_SliderPixelPress_Slider.Models.Item>>
+
+@using DotNetNuke.Web.Client.ClientResourceManagement
+@using DotNetNuke.Framework.JavaScriptLibraries
+@using System.Text.RegularExpressions
+@using DotNetNuke.Web.Mvc.Helpers
+@using System.Linq;
+@using DotNetNuke.Web.Api
+@using DotNetNuke.Services.FileSystem
+@using Hotcakes.Commerce.Dnn
+@using Hotcakes.CommerceDTO.v1;
+@using Hotcakes.CommerceDTO.v1.Client;
+@using Hotcakes.CommerceDTO.v1.Catalog;
+@using DotNetNuke.Web.Mvc.Framework.Controllers
+
+
+<div id="Items-@Dnn.ModuleContext.ModuleId">
+    @{
+        ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/module_pixelpress_slider/PixelPress_Slider/Scripts/swiper.js");
+        //source: https://swiperjs.com/
+        var apiProducts = ((PixelPress_SliderPixelPress_Slider.Controllers.ItemController)this.ViewContext.Controller).GetProducts();
+    }
+
+    <!-- Slider main container -->
+    <div class="main_container">
+        <div class="swiper-container">
+            <!-- Additional required wrapper -->
+            <div class="swiper-wrapper" id="pixelpress_slider_main">
+                <!-- ide jönnek a termékek! -->
+            </div>
+        </div>
+        <div class="secondary_container hero-container">
+            <div>
+                <h3>Ügyfeleink tervezték</h3>
+                <p>Tudtad, hogy saját ruháidat Te is megtervezheted? A <span style="font-weight:bold;">Designer</span> oldalon saját szövegeidet és képeidet is elhelyezheted a Neked szimpatikus ruhadarabon!</p>
+                <div style="text-align: center;">
+                    <button type="button" id="designerButton" class="btn btn-default">
+                        Tervezek én is!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <div class="stats_container">
+        <h2>A PixelPress számokban</h2>
+        <p>Évek óta azon dolgozunk, hogy mindenki számára könnyű legyen egyedi termékeket tervezni és megrendelni – legyen szó egyedi pólókról, pulóverekről vagy más testreszabott ruhákról. <br />Nézd, milyen messzire jutottunk együtt!</p>
+        <table id="statsTable" cellspacing="10">
+            <tr>
+                <td>
+                    <img src="https://img.icons8.com/?size=70&id=FKdRJGeW1FXY&format=png&color=5C4033"/>
+                    <br />
+                    <a_sima id="numberOfProducts" class="statCounter">0</a_sima>
+                    <br />
+                    <a_sima class="statText">termék van az áruházban, amiből válogathatsz</a_sima>
+                </td>
+                
+                <td>
+                    <img src="https://img.icons8.com/?size=70&id=20388&format=png&color=5C4033" />
+                    <br />
+                    <a_sima id="numberOfDesignedProducts" class="statCounter">0</a_sima>
+                    <br />
+                    <a_sima class="statText">darab terméket terveztek ügyfeleink</a_sima>
+                </td>
+                
+                <td>
+                    <img src="https://img.icons8.com/?size=70&id=793&format=png&color=5C4033" />
+                    <br />
+                    <a_sima id="coEmission" class="statCounter">142+</a_sima>
+                    <br />
+                    <a_sima class="statText">tonna CO<sup>2</sup> kibocsátástól óvtuk meg idáig a bolygót</a_sima>
+                </td>
+                
+                <td>
+                    <img src="https://img.icons8.com/?size=70&id=60301&format=png&color=5C4033" />
+                    <br />
+                    <a_sima id="numberOfCountries" class="statCounter">6</a_sima>
+                    <br />
+                    <a_sima class="statText">országban vagyunk jelen, Közép- és Keleteurópában</a_sima>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    let productListFromApiSlider = @Html.Raw(apiProducts);
+    let numberOfDesignedProducts = 0;
+    let baseURLSlider = extractbaseURLSlider();
+    function extractbaseURLSlider() {
+        let slashCount = 0;
+        for (let i = 0; i < decodeURI(document.baseURI).length; i++) {
+            if (decodeURI(document.baseURI)[i] === "/") {
+                slashCount++;
+            }
+            if (slashCount === 3) {
+                return decodeURI(document.baseURI).substring(0, i + 1);
+            }
+        }
+        return null;
+    }
+
+    document.getElementById("designerButton").addEventListener("click", () => {
+        var redirectWindow = window.open(baseURLSlider + "Designer", '_blank');
+        redirectWindow.location;
+    });
+
+    shuffle(productListFromApiSlider['Content']) // sorrend randomizáló
+    function shuffle(array) {
+        array.sort(() => Math.random() - 0.5);
+    }
+
+    let imagePathSlider = "/Portals/0/Hotcakes/Data/products/";
+    loadProducts()
+    function loadProducts() {
+        for (var i = 0; i < productListFromApiSlider['Content'].length; i++) {
+            if (productListFromApiSlider['Content'][i].ProductName.startsWith("Designterv") && productListFromApiSlider['Content'][i].ImageFileMedium) {
+                var newSwiperSlide = document.createElement("div");
+                newSwiperSlide.className = "swiper-slide"
+                var newA = document.createElement("a");
+                newA.href = baseURLSlider + "HotcakesStore/Product-Viewer/designterv-" + productListFromApiSlider['Content'][i].Sku;
+                newA.target = '_blank';
+                var newPicture = document.createElement("div");
+                newPicture.className = "picture"
+                var newImg = document.createElement("img");
+                newImg.src = baseURLSlider + imagePathSlider + productListFromApiSlider['Content'][i].Bvin + "/medium/" + productListFromApiSlider['Content'][i].ImageFileMedium;
+                newPicture.appendChild(newImg);
+                newA.appendChild(newPicture);
+                newSwiperSlide.appendChild(newA);
+                var newDetail = document.createElement("div");
+                newDetail.className = "detail";
+                var newH3 = document.createElement("h3");
+                newH3.innerHTML = productListFromApiSlider['Content'][i].ProductName;
+                newDetail.appendChild(newH3);
+                var newPriceSpan = document.createElement("span");
+                newPriceSpan.className = "pricespan";
+                newPriceSpan.innerHTML = Math.round(productListFromApiSlider['Content'][i].SitePrice) + " Ft";
+                newDetail.appendChild(newPriceSpan);
+                newSwiperSlide.appendChild(newDetail);
+                numberOfDesignedProducts += 1;
+
+                document.getElementById("pixelpress_slider_main").appendChild(newSwiperSlide)
+            }
+        }
+    }
+
+    refreshStats()
+    function refreshStats() {
+        document.getElementById("numberOfProducts").innerHTML = productListFromApiSlider['Content'].length
+        document.getElementById("numberOfDesignedProducts").innerHTML = numberOfDesignedProducts
+    }
+
+    var swiper = new Swiper(".swiper-container", {
+        effect: "coverflow",
+        grabCursor: true,
+        centeredSlides: true,
+        slidesPerView: "auto",
+        autoplay: {
+            delay: 500,
+        },
+        speed: 4000,
+        coverflowEffect: {
+            rotate: 10,
+            stretch: -20,
+            depth: 150,
+            modifier: 1,
+            slideShadows: false
+        },
+      pagination: {
+          el: ".swiper-pagination"
+      }
+});
+
+</script>
